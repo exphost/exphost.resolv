@@ -1,0 +1,24 @@
+- name: debug
+  debug:
+    msg: "jeste namede"
+
+- name: find app
+  set_fact:
+    _reg_dns: "{{groups['all']|map('extract', hostvars, ['apps', app.value.resolv.addresses.from_app])|zip(groups['all'])|selectattr(0,'defined')|list}}"
+
+- name: get ips
+  set_fact:
+    _reg_dns_ips: "{{_reg_dns|map('select','string')|map('list')|flatten|map('extract', hostvars,'ansible_host')|list}}"
+- name: debug
+  debug:
+    msg: "{{_reg_dns_ips}}"
+  run_once: True
+
+- block:
+    - name: copy resolv.conf
+      template:
+        src: resolv.conf
+        dest: /etc/resolv.conf
+
+  become: True
+  become_user: root
